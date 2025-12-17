@@ -1,3 +1,4 @@
+// ADD page
 import 'package:flutter/material.dart';
 
 class TambahBarangPage extends StatefulWidget {
@@ -109,10 +110,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                       const SizedBox(height: 16),
                       Text(
                         'Tap to add photo',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -219,10 +217,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                 decoration: InputDecoration(
                   hintText: 'Scan or type ID',
                   hintStyle: TextStyle(color: Colors.grey[400]),
-                  prefixIcon: Icon(
-                    Icons.qr_code,
-                    color: Colors.grey[400],
-                  ),
+                  prefixIcon: Icon(Icons.qr_code, color: Colors.grey[400]),
                   filled: true,
                   fillColor: Colors.grey[50],
                   border: OutlineInputBorder(
@@ -235,7 +230,10 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF2196F3),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -269,7 +267,10 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF2196F3),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -373,21 +374,24 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                                 color: Colors.black,
                                 fontWeight: FontWeight.w500,
                               ),
-                              items: [
-                                'Gudang A',
-                                'Gudang B',
-                                'Gudang C',
-                                'Lab Mobile',
-                                'Lab Komputer',
-                              ].map((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(left: 16),
-                                    child: Text(value),
-                                  ),
-                                );
-                              }).toList(),
+                              items:
+                                  [
+                                    'Gudang A',
+                                    'Gudang B',
+                                    'Gudang C',
+                                    'Lab Mobile',
+                                    'Lab Komputer',
+                                  ].map((String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 16,
+                                        ),
+                                        child: Text(value),
+                                      ),
+                                    );
+                                  }).toList(),
                               onChanged: (String? newValue) {
                                 setState(() {
                                   _selectedLokasi = newValue!;
@@ -432,7 +436,10 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF2196F3), width: 2),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF2196F3),
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -458,11 +465,7 @@ class _TambahBarangPageState extends State<TambahBarangPage> {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(
-                        Icons.save,
-                        color: Colors.white,
-                        size: 24,
-                      ),
+                      Icon(Icons.save, color: Colors.white, size: 24),
                       SizedBox(width: 8),
                       Text(
                         'Simpan Barang',
