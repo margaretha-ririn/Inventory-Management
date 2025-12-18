@@ -35,9 +35,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (mounted) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Login Berhasil (Simulasi)')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login Berhasil')));
     }
   }
 
@@ -244,7 +244,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: const Text('Kembali ke Login'),
+              child: const Text('Lanjut ke Bagian Dashboard'),
             ),
           ],
         ),
