@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:inventory/services/api_service.dart';
 import 'package:inventory/models/user_model.dart';
 import 'package:inventory/screens/dashboard.dart';
-   // dst...
-   
+// dst...
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -14,10 +14,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _obscurePassword = true;
   bool _isLoading = false;
-  
+
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  
+
   final _formKey = GlobalKey<FormState>();
 
   @override
@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response['success'] == true) {
         // Save user data
         await ApiService.saveUserData(response['data']);
-        
+
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -74,7 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -163,14 +163,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 8),
                   const Text(
                     'Manage your inventory efficiently.',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Color(0xFF808080),
-                    ),
+                    style: TextStyle(fontSize: 18, color: Color(0xFF808080)),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
-                  
+
                   // Email field
                   const Text(
                     'Email or Username',
@@ -213,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Password field
                   const Text(
                     'Password',
@@ -265,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Forgot Password
                   Align(
                     alignment: Alignment.centerRight,
@@ -273,7 +270,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Forgot password feature coming soon!'),
+                            content: Text(
+                              'Forgot password feature coming soon!',
+                            ),
                           ),
                         );
                       },
@@ -287,7 +286,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Login Button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
@@ -298,7 +297,9 @@ class _LoginScreenState extends State<LoginScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       elevation: 0,
-                      disabledBackgroundColor: const Color(0xFF0BA9E6).withOpacity(0.6),
+                      disabledBackgroundColor: const Color(
+                        0xFF0BA9E6,
+                      ).withOpacity(0.6),
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -319,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Create Account
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -352,7 +353,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Demo credentials info
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -366,7 +367,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         Row(
                           children: const [
-                            Icon(Icons.info_outline, color: Color(0xFF0BA9E6), size: 20),
+                            Icon(
+                              Icons.info_outline,
+                              color: Color(0xFF0BA9E6),
+                              size: 20,
+                            ),
                             SizedBox(width: 8),
                             Text(
                               'Demo Credentials',
@@ -509,9 +514,7 @@ class RegisterPage extends StatelessWidget {
         title: const Text('Register'),
         backgroundColor: const Color(0xFF0BA9E6),
       ),
-      body: const Center(
-        child: Text('Register Page - Coming Soon'),
-      ),
+      body: const Center(child: Text('Register Page - Coming Soon')),
     );
   }
 }
