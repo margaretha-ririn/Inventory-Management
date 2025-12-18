@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'dashboard.dart';
 import 'manajemen.dart';
 import 'RIWAYAT.dart';
+import 'package:inventory/services/api_service.dart';
+import 'package:inventory/models/user_model.dart';
+import 'package:inventory/screens/dashboard.dart';
+// dst...
 
 class PengaturanPage extends StatefulWidget {
   const PengaturanPage({Key? key}) : super(key: key);
@@ -91,13 +95,10 @@ class _PengaturanPageState extends State<PengaturanPage> {
             const SizedBox(height: 6),
             Text(
               'NIM: 2201534089 • Mobile Programming A',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 24),
-            
+
             // Edit Profile Button
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -294,8 +295,8 @@ class _PengaturanPageState extends State<PengaturanPage> {
               onPressed: () {
                 // Logout - kembali ke login
                 Navigator.pushNamedAndRemoveUntil(
-                  context, 
-                  '/', 
+                  context,
+                  '/',
                   (route) => false,
                 );
               },
@@ -318,10 +319,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
             // Copyright
             Text(
               'Inventory Manager Mobile © 2023',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade400,
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade400),
             ),
             const SizedBox(height: 100),
           ],
@@ -349,17 +347,23 @@ class _PengaturanPageState extends State<PengaturanPage> {
             if (index == 0) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const InventoryHomePage()),
+                MaterialPageRoute(
+                  builder: (context) => const InventoryHomePage(),
+                ),
               );
             } else if (index == 1) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const ManajemenBarangPage()),
+                MaterialPageRoute(
+                  builder: (context) => const ManajemenBarangPage(),
+                ),
               );
             } else if (index == 3) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const RiwayatBarangPage()),
+                MaterialPageRoute(
+                  builder: (context) => const RiwayatBarangPage(),
+                ),
               );
             } else if (index == 4) {
               // Sudah di Pengaturan
@@ -374,10 +378,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
               icon: Icon(Icons.inventory_2),
               label: 'Barang',
             ),
-            BottomNavigationBarItem(
-              icon: SizedBox.shrink(),
-              label: '',
-            ),
+            BottomNavigationBarItem(icon: SizedBox.shrink(), label: ''),
             BottomNavigationBarItem(
               icon: Icon(Icons.bar_chart_outlined),
               label: 'Laporan',
@@ -411,11 +412,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                 color: iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 22,
-              ),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -428,11 +425,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                 ),
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              color: Colors.grey.shade400,
-              size: 24,
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 24),
           ],
         ),
       ),
@@ -460,11 +453,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
                 color: iconBg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                color: iconColor,
-                size: 22,
-              ),
+              child: Icon(icon, color: iconColor, size: 22),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -479,18 +468,11 @@ class _PengaturanPageState extends State<PengaturanPage> {
             ),
             Text(
               trailing,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
             ),
             if (showArrow) ...[
               const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade400,
-                size: 24,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 24),
             ],
           ],
         ),
@@ -516,11 +498,7 @@ class _PengaturanPageState extends State<PengaturanPage> {
               color: iconBg,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(
-              icon,
-              color: iconColor,
-              size: 22,
-            ),
+            child: Icon(icon, color: iconColor, size: 22),
           ),
           const SizedBox(width: 16),
           Expanded(

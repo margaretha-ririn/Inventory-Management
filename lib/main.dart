@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // Import halaman login
+import 'screens/login.dart'; // Import halaman login
+
 
 void main() {
-  runApp(const MyApp());
+  runApp(const InventoryApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class InventoryApp extends StatelessWidget {
+  const InventoryApp({super.key});
 
   @override
   Widget build(BuildContext context) {
