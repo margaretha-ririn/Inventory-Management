@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:inventory/services/api_service.dart';
-   import 'package:inventory/models/user_model.dart';
-   import 'package:inventory/screens/dashboard.dart';
-   // dst...
-   
+import 'package:inventory/models/user_model.dart';
+import 'package:inventory/screens/dashboard.dart';
+// dst...
+
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
@@ -17,7 +17,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +31,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               // Header dengan back button
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     IconButton(
@@ -256,7 +260,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           onPressed: () {
                             setState(() {
-                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                              _obscureConfirmPassword =
+                                  !_obscureConfirmPassword;
                             });
                           },
                         ),

@@ -43,10 +43,7 @@ class _InventoryHomePageState extends State<InventoryHomePage> {
         title: const Text('Dashboard'),
         backgroundColor: const Color(0xFF0BA9E6),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: logout,
-          )
+          IconButton(icon: const Icon(Icons.logout), onPressed: logout),
         ],
       ),
       body: user == null
