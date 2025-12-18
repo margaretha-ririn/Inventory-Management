@@ -91,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 32),
                     // Title
                     const Text(
-                      'Daftar Akun Baru',
+                      'Daftar Akun',
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
@@ -102,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 12),
                     // Subtitle
                     const Text(
-                      'Create your student inventory account to start managing your mobile programming projects.',
+                      'Create your inventory account to start managing your mobile programming projects.',
                       style: TextStyle(
                         fontSize: 14,
                         color: Color(0xFF6B7280),
@@ -149,7 +149,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 20),
                     // Email Address field
                     const Text(
-                      'Email Address',
+                      'E-mail',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -160,7 +160,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
-                        hintText: 'student@university.ac.id',
+                        hintText: 'student@university.edu',
                         hintStyle: const TextStyle(
                           color: Color(0xFFB0B8C1),
                           fontSize: 15,
@@ -314,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text(
-                          'Already have an account?  ',
+                          'Already have an account?',
                           style: TextStyle(
                             fontSize: 14,
                             color: Color(0xFF6B7280),
