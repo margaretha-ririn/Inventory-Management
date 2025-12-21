@@ -43,25 +43,40 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
 *Library/Framework yang digunakan:
 
   Flutter SDK: Framework UI Utama
+  
   Dart: Bahasa Pemrograman utama dalam Pengembangan aplikasi Flutter
+  
   Flutter SDK Tools: Digunakan untuk build aplikasi, debugging, hot reload, dan manajemen dependensi
+  
   Android SDK: Digunakan sebagai platform target untuk deployment aplikasi Android
   
 *Public/Private API yang digunakan:
+
   Private API: 1. Autentikasi Pengguna (Login & Register)
+  
                2. Manajemen Data Barang
+               
                3. Transaksi stok masuk dan kelusr
+               
                4. Penyimpanan dan Pengambilan laporan inventaris
+               
   Private API ini hanya dapat diakses oleh aplikasi dan tidak tersedia untuk pengguna publik
 
 # Cara Menjalankan Aplikasi
 1. Persyaratan Sistem
+   
   Flutter SDK terinstal (versi sesuai yang digunakan di proyek).
+  
   Dart SDK (biasanya sudah termasuk di Flutter).
+  
   Android Studio atau VS Code dengan ekstensi Flutter.
+
   Emulator atau perangkat fisik Android untuk pengujian.
+  
   Git (opsional, jika clone dari repository).
-2. Menjalankan Aplikasi Flutter
+  
+3. Menjalankan Aplikasi Flutter
+   
   Panduan berikut menjelaskan langkah-langkah menjalankan aplikasi CampusFind.
 
   Clone repository
