@@ -52,7 +52,8 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
   
 *Public/Private API yang digunakan:
 
-  Private API: 1. Autentikasi Pengguna (Login & Register)
+  Private API: 
+               1. Autentikasi Pengguna (Login & Register)
   
                2. Manajemen Data Barang
                
@@ -65,43 +66,43 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
 # Cara Menjalankan Aplikasi
 1. Persyaratan Sistem
    
-  Flutter SDK terinstal (versi sesuai yang digunakan di proyek).
+    Flutter SDK terinstal (versi sesuai yang digunakan di proyek).
   
-  Dart SDK (biasanya sudah termasuk di Flutter).
+    Dart SDK (biasanya sudah termasuk di Flutter).
   
-  Android Studio atau VS Code dengan ekstensi Flutter.
+    Android Studio atau VS Code dengan ekstensi Flutter.
 
-  Emulator atau perangkat fisik Android untuk pengujian.
+    Emulator atau perangkat fisik Android untuk pengujian.
   
-  Git (opsional, jika clone dari repository).
+    Git (opsional, jika clone dari repository).
   
 3. Menjalankan Aplikasi Flutter
    
-  Panduan berikut menjelaskan langkah-langkah menjalankan aplikasi CampusFind.
+    Panduan berikut menjelaskan langkah-langkah menjalankan aplikasi CampusFind.
 
-  Clone repository
+    Clone repository
   
-  Salin project dari GitHub ke komputer:
-    git clone https://github.com/margaretha-ririn/Inventory-Management.git
+    Salin project dari GitHub ke komputer:
+      git clone https://github.com/margaretha-ririn/Inventory-Management.git
     
-  Masuk ke folder project Pindah ke direktori project:
-    cd Inventory-Management
+    Masuk ke folder project Pindah ke direktori project:
+      cd Inventory-Management
     
-  Install dependencies Install semua package yang diperlukan aplikasi:
-    flutter pub get
-    
-  Cek device atau emulator Pastikan tersedia device untuk menjalankan aplikasi:
-    flutter devices
-  Bisa menggunakan emulator Android/iOS atau perangkat fisik yang terhubung.
+    Install dependencies Install semua package yang diperlukan aplikasi:
+      flutter pub get
+      
+    Cek device atau emulator Pastikan tersedia device untuk menjalankan aplikasi:
+      flutter devices
+    Bisa menggunakan emulator Android/iOS atau perangkat fisik yang terhubung.
   
-  Jalankan aplikasi Jalankan aplikasi pada device yang tersedia:
-    flutter run
+    Jalankan aplikasi Jalankan aplikasi pada device yang tersedia:
+      flutter run
+      
+    Mode release (opsional) Untuk versi final yang lebih cepat dan siap digunakan:
+      flutter run --release
     
-  Mode release (opsional) Untuk versi final yang lebih cepat dan siap digunakan:
-    flutter run --release
-    
-  Troubleshooting Jika terjadi error dependency:
-    flutter clean
-    flutter pub get
+    Troubleshooting Jika terjadi error dependency:
+      flutter clean
+      flutter pub get
     
 Jika Flutter tidak dikenali, pastikan Flutter sudah terinstall dan PATH telah dikonfigurasi. Jika device tidak muncul, periksa emulator atau pastikan perangkat fisik berada dalam mode developer.
