@@ -11,36 +11,36 @@
 Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangkan menggunakan flutter untuk membantu pengguna dalam mengelola data persediaan barang secara digital. Aplikasi ini mendukung pencatatan stok, pemantauan ketersediaan barang, laporan inventaris serta pengelolaan transaksi masuk dan keluar secara efisien.
 
 # Daftar Fitur pada Aplikasi
-*Login & Autentikasi Pengguna
+- Login & Autentikasi Pengguna
 
-*Dashboard ringkasan stok barang
+- Dashboard ringkasan stok barang
 
-*Tambah, ubah, dan hapus data barang
+- Tambah, ubah, dan hapus data barang
 
-*Management stok masuk dan stok keluar
+- Management stok masuk dan stok keluar
 
-*Peringatan stok menipis (low stock alert)
+- Peringatan stok menipis (low stock alert)
 
-*Riwayat transaksi barang
+- Riwayat transaksi barang
 
-*Laporan Inventaris
+- Laporan Inventaris
 
-*Halaman Profil Pengguna
+- Halaman Profil Pengguna
 
-*Navigasi menggunakan Bottom Navigation Bar
+- Navigasi menggunakan Bottom Navigation Bar
 
-*Mode Gelap (Dark Mode), Terang 
+- Mode Gelap (Dark Mode), Terang 
 
 # Stack Technology yang digunakan
-*Flutter Version: 3.35.3
+- Flutter Version: 3.35.3
 
-*Dart Version: 3.9.0
+- Dart Version: 3.9.0
 
-*Flutter SDK Tools: 2.48.0
+- Flutter SDK Tools: 2.48.0
 
-*Android SDK : 36.1.0
+- Android SDK : 36.1.0
 
-*Library/Framework yang digunakan:
+- Library/Framework yang digunakan:
 
     Flutter SDK: Framework UI Utama
     
@@ -50,7 +50,7 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
     
     Android SDK: Digunakan sebagai platform target untuk deployment aplikasi Android
   
-*Public/Private API yang digunakan:
+- Public/Private API yang digunakan:
 
   Private API: 
   
@@ -83,33 +83,33 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
 
     Clone repository
   
-    Salin project dari GitHub ke komputer:
+    - Salin project dari GitHub ke komputer:
    
       git clone https://github.com/margaretha-ririn/Inventory-Management.git
     
-    Masuk ke folder project Pindah ke direktori project:
+    - Masuk ke folder project Pindah ke direktori project:
    
       cd Inventory-Management
     
-    Install dependencies Install semua package yang diperlukan aplikasi:
+    - Install dependencies Install semua package yang diperlukan aplikasi:
    
       flutter pub get
       
-    Cek device atau emulator Pastikan tersedia device untuk menjalankan aplikasi:
+    - Cek device atau emulator Pastikan tersedia device untuk menjalankan aplikasi:
    
       flutter devices
    
-    Bisa menggunakan emulator Android/iOS atau perangkat fisik yang terhubung.
+       Bisa menggunakan emulator Android/iOS atau perangkat fisik yang terhubung.
   
-    Jalankan aplikasi Jalankan aplikasi pada device yang tersedia:
+    - Jalankan aplikasi Jalankan aplikasi pada device yang tersedia:
    
       flutter run
       
-    Mode release (opsional) Untuk versi final yang lebih cepat dan siap digunakan:
+    - Mode release (opsional) Untuk versi final yang lebih cepat dan siap digunakan:
    
       flutter run --release
     
-    Troubleshooting Jika terjadi error dependency:
+    - Troubleshooting Jika terjadi error dependency:
    
       flutter clean
    
