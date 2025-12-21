@@ -12,14 +12,23 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
 
 # Daftar Fitur pada Aplikasi
 *Login & Autentikasi Pengguna
+
 *Dashboard ringkasan stok barang
+
 *Tambah, ubah, dan hapus data barang
+
 *Management stok masuk dan stok keluar
+
 *Peringatan stok menipis (low stock alert)
+
 *Riwayat transaksi barang
+
 *Laporan Inventaris
+
 *Halaman Profil Pengguna
+
 *Navigasi menggunakan Bottom Navigation Bar
+
 *Mode Gelap (Dark Mode), Terang 
 
 # Stack Technology yang digunakan
