@@ -7,8 +7,9 @@ import 'package:intl/intl.dart';
 import 'barcode_page.dart';
 import 'history_page.dart';
 import 'add_item_page.dart';
-import 'analytics_page.dart'; // Halaman Laporan
-import 'settings_page.dart'; // Halaman Setting Baru
+import 'analytics_page.dart';
+import 'settings_page.dart';
+import 'items_page.dart';
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -27,12 +28,12 @@ class _DashboardPageState extends State<DashboardPage> {
   bool isError = false;
 
   // --- Variabel Search ---
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   List<dynamic> searchResults = [];
   bool isSearching = false;
   bool isLoadingSearch = false;
 
-  // --- Warna UI ---
+  // --- Warna UI (Dark Theme Lengkap) ---
   final Color bgMain = const Color(0xFF0F161C);
   final Color cardBlue1 = const Color(0xFF007AFF);
   final Color cardBlue2 = const Color(0xFF00C6FF);
@@ -54,21 +55,23 @@ class _DashboardPageState extends State<DashboardPage> {
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        if (mounted)
+        if (mounted) {
           setState(() {
             dashboardData = jsonDecode(response.body);
             isLoadingDashboard = false;
             isError = false;
           });
+        }
       } else {
         throw Exception("Gagal");
       }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           isLoadingDashboard = false;
           isError = true;
         });
+      }
     }
   }
 
@@ -89,11 +92,12 @@ class _DashboardPageState extends State<DashboardPage> {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (mounted)
+        if (mounted) {
           setState(() {
             searchResults = data['data'];
             isLoadingSearch = false;
           });
+        }
       }
     } catch (e) {
       if (mounted) setState(() => isLoadingSearch = false);
@@ -109,6 +113,7 @@ class _DashboardPageState extends State<DashboardPage> {
       );
       final data = jsonDecode(response.body);
       if (!mounted) return;
+
       if (data['success'] == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -259,12 +264,66 @@ class _DashboardPageState extends State<DashboardPage> {
                         itemCount: lowStockItems.length,
                         itemBuilder: (context, index) {
                           var item = lowStockItems[index];
-                          return _buildAlertCard(
-                            item['id'].toString(),
-                            item['name'],
-                            item['sku'],
-                            item['stock'].toString(),
-                            showBtn: true,
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: bgMain,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: alertRed.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: alertRed,
+                                  size: 30,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        item['name'],
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Sisa Stok: ${item['stock']} Unit",
+                                        style: TextStyle(
+                                          color: textGrey,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: alertRed.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    "Segera Restock",
+                                    style: TextStyle(
+                                      color: alertRed,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           );
                         },
                       ),
@@ -286,28 +345,23 @@ class _DashboardPageState extends State<DashboardPage> {
     return currencyFormatter.format(double.tryParse(number.toString()) ?? 0);
   }
 
-  // --- MAIN BUILD ---
+  // --- MAIN SCAFFOLD & NAVBAR LOGIC ---
   @override
   Widget build(BuildContext context) {
-    // DAFTAR HALAMAN UNTUK NAVBAR
+    // List Halaman untuk Navbar
     final List<Widget> pages = [
-      _buildHomeContent(), // 0: Beranda (Konten Dashboard Asli)
-      const Center(
-        child: Text(
-          "Halaman Barang (Placeholder)",
-          style: TextStyle(color: Colors.white),
-        ),
-      ), // 1: Barang (Bisa diganti List Barang nanti)
-      const AnalyticsPage(), // 2: Laporan (Halaman Analitik)
-      const SettingsPage(), // 3: Setting (Halaman Setting Baru)
+      _buildHomeContent(), // 0: Beranda (Konten Dashboard Full)
+      const ItemsPage(), // 1: Barang
+      const AnalyticsPage(), // 2: Laporan
+      const SettingsPage(), // 3: Setting
     ];
 
     return Scaffold(
       backgroundColor: bgMain,
-      // Body berubah sesuai index navbar
+      // Body dinamis sesuai index
       body: SafeArea(child: pages[_selectedIndex]),
 
-      // Tombol Scan hanya muncul di Halaman Beranda (0) atau Barang (1) agar tidak menutupi Setting
+      // Tombol Scan (Hanya muncul di Beranda & Barang)
       floatingActionButton: _selectedIndex <= 1
           ? Container(
               height: 65,
@@ -341,9 +395,10 @@ class _DashboardPageState extends State<DashboardPage> {
                 ),
               ),
             )
-          : null, // Hilangkan FAB di halaman Laporan & Setting biar bersih
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
+      // Bottom Navbar
       bottomNavigationBar: BottomAppBar(
         color: cardDark,
         shape: const CircularNotchedRectangle(),
@@ -355,7 +410,7 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               _buildNavItem(Icons.grid_view_rounded, "Beranda", 0),
               _buildNavItem(Icons.inventory_2_outlined, "Barang", 1),
-              const SizedBox(width: 40), // Spasi buat FAB
+              const SizedBox(width: 40), // Spasi FAB
               _buildNavItem(Icons.insert_chart_outlined, "Laporan", 2),
               _buildNavItem(Icons.settings_outlined, "Setting", 3),
             ],
@@ -365,11 +420,11 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- KONTEN BERANDA (DASHBOARD LAMA DIPINDAH KESINI) ---
+  // --- KONTEN BERANDA (Ini yang tadi hilang, sekarang saya balikin Full) ---
   Widget _buildHomeContent() {
     return Column(
       children: [
-        // HEADER & SEARCH
+        // 1. Header & Search Fixed di Atas
         Container(
           padding: const EdgeInsets.all(20),
           color: bgMain,
@@ -480,6 +535,8 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
         ),
+
+        // 2. Konten Scrollable (Card, Grid Menu, Low Stock, Activity)
         Expanded(
           child: isSearching ? _buildSearchResults() : _buildDashboardWidgets(),
         ),
@@ -493,9 +550,17 @@ class _DashboardPageState extends State<DashboardPage> {
     }
     if (isError || dashboardData == null) {
       return Center(
-        child: TextButton(
-          onPressed: _fetchDashboardData,
-          child: const Text("Gagal load data. Coba lagi."),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 40),
+            const SizedBox(height: 10),
+            Text("Gagal memuat data", style: TextStyle(color: textGrey)),
+            TextButton(
+              onPressed: _fetchDashboardData,
+              child: const Text("Coba Lagi"),
+            ),
+          ],
         ),
       );
     }
@@ -510,6 +575,7 @@ class _DashboardPageState extends State<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
+          // TOTAL ASET CARD
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -592,6 +658,8 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           const SizedBox(height: 30),
+
+          // GRID MENU (AKSI CEPAT) - Saya balikin layout lengkapnya
           const Text(
             "Aksi Cepat",
             style: TextStyle(
@@ -632,7 +700,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 "Laporan",
                 Colors.orange,
                 onTap: () => setState(() => _selectedIndex = 2),
-              ), // Pindah Tab ke Laporan
+              ), // Pindah Tab
               _buildActionIcon(
                 Icons.history,
                 "Riwayat",
@@ -644,7 +712,9 @@ class _DashboardPageState extends State<DashboardPage> {
               ),
             ],
           ),
+
           const SizedBox(height: 30),
+          // LOW STOCK ALERT
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -696,12 +766,13 @@ class _DashboardPageState extends State<DashboardPage> {
                         item['name'],
                         item['sku'],
                         item['stock'].toString(),
-                        showBtn: true,
                       );
                     },
                   ),
           ),
+
           const SizedBox(height: 30),
+          // AKTIVITAS TERBARU
           const Row(
             children: [
               Icon(
@@ -746,17 +817,24 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- WIDGET HELPERS ---
+  // --- WIDGET HELPER UI LENGKAP (TIDAK ADA YANG DIPOTONG) ---
+
   Widget _buildSearchResults() {
-    if (isLoadingSearch)
+    if (isLoadingSearch) {
       return Center(child: CircularProgressIndicator(color: cardBlue2));
-    if (searchResults.isEmpty)
+    }
+    if (searchResults.isEmpty) {
       return Center(
-        child: Text(
-          "Tidak ditemukan barang.",
-          style: TextStyle(color: textGrey),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.search_off, size: 80, color: textGrey.withOpacity(0.3)),
+            const SizedBox(height: 10),
+            Text("Tidak ditemukan barang.", style: TextStyle(color: textGrey)),
+          ],
         ),
       );
+    }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: searchResults.length,
@@ -795,9 +873,19 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      "SKU: ${item['sku']}",
-                      style: TextStyle(color: textGrey, fontSize: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        "SKU: ${item['sku']}",
+                        style: TextStyle(color: textGrey, fontSize: 10),
+                      ),
                     ),
                   ],
                 ),
@@ -882,13 +970,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildAlertCard(
-    String id,
-    String name,
-    String sku,
-    String stock, {
-    bool showBtn = false,
-  }) {
+  Widget _buildAlertCard(String id, String name, String sku, String stock) {
     return Container(
       width: 260,
       margin: const EdgeInsets.only(right: 15),
@@ -954,29 +1036,28 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
           const Spacer(),
-          if (showBtn)
-            GestureDetector(
-              onTap: () => _showRestockDialog(id, name),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: alertRed.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: alertRed.withOpacity(0.3)),
-                ),
-                child: Center(
-                  child: Text(
-                    "Restock Segera",
-                    style: TextStyle(
-                      color: alertRed,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
+          GestureDetector(
+            onTap: () => _showRestockDialog(id, name),
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              decoration: BoxDecoration(
+                color: alertRed.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: alertRed.withOpacity(0.3)),
+              ),
+              child: Center(
+                child: Text(
+                  "Restock Segera",
+                  style: TextStyle(
+                    color: alertRed,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
+          ),
         ],
       ),
     );
@@ -1063,7 +1144,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // LOGIC NAVBAR
+  // NAV ITEM
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(

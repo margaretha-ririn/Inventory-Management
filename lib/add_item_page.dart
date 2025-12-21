@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io'; // Untuk cek platform
+import 'package:image_picker/image_picker.dart'; // Plugin Gambar
+import 'package:simple_barcode_scanner/simple_barcode_scanner.dart'; // Plugin Scanner
 
 class AddItemPage extends StatefulWidget {
   const AddItemPage({super.key});
@@ -10,7 +13,7 @@ class AddItemPage extends StatefulWidget {
 }
 
 class _AddItemPageState extends State<AddItemPage> {
-  // Controller Input
+  // --- VARIABEL UTAMA ---
   final TextEditingController _skuController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
@@ -23,8 +26,11 @@ class _AddItemPageState extends State<AddItemPage> {
     "Lab Jaringan",
     "Ruang Dosen",
   ];
-
   bool _isLoading = false;
+
+  // --- VARIABEL GAMBAR (Ini yang sering bikin error kalau lupa) ---
+  File? _selectedImage;
+  final ImagePicker _picker = ImagePicker(); // <--- Pastikan baris ini ada!
 
   // Warna UI
   final Color bgMain = const Color(0xFF0F161C);
@@ -32,7 +38,122 @@ class _AddItemPageState extends State<AddItemPage> {
   final Color accentBlue = const Color(0xFF00C6FF);
   final Color textGrey = const Color(0xFF8B959E);
 
-  // Fungsi Simpan Barang
+  // --- FUNGSI SCAN BARCODE (SMART VERSION) ---
+  Future<void> _scanBarcode() async {
+    // 1. Cek apakah ini Windows?
+    if (Platform.isWindows) {
+      // JIKA WINDOWS: Pakai Input Manual (Biar gak White Screen/Crash Driver)
+      var manualInput = await showDialog<String>(
+        context: context,
+        builder: (context) {
+          TextEditingController manualController = TextEditingController();
+          return AlertDialog(
+            backgroundColor: cardDark,
+            title: const Text(
+              "Scan Barcode (Mode Windows)",
+              style: TextStyle(color: Colors.white),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Kamera Laptop terdeteksi. Silakan input kode manual atau gunakan scanner USB.",
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                ),
+                const SizedBox(height: 15),
+                TextField(
+                  controller: manualController,
+                  autofocus: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: bgMain,
+                    hintText: "Scan/Ketik Barcode...",
+                    hintStyle: TextStyle(color: textGrey),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text("Batal", style: TextStyle(color: textGrey)),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: accentBlue),
+                onPressed: () => Navigator.pop(context, manualController.text),
+                child: const Text(
+                  "Simpan",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (manualInput != null && manualInput.isNotEmpty) {
+        setState(() => _skuController.text = manualInput);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Barcode berhasil diinput!"),
+          ),
+        );
+      }
+    } else {
+      // JIKA HP (ANDROID/IOS): Pakai Kamera Asli
+      String? res = await SimpleBarcodeScanner.scanBarcode(
+        context,
+        barcodeAppBar: const BarcodeAppBar(
+          appBarTitle: 'Scan Barcode',
+          centerTitle: false,
+          enableBackButton: true,
+          backButtonIcon: Icon(Icons.arrow_back_ios),
+        ),
+        isShowFlashIcon: true,
+        delayMillis: 2000,
+        cameraFace: CameraFace.back,
+      );
+
+      if (res != null && res != '-1') {
+        setState(() => _skuController.text = res);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Barcode Terdeteksi!"),
+          ),
+        );
+      }
+    }
+  }
+
+  // --- FUNGSI PILIH GAMBAR (GALERI) ---
+  Future<void> _pickImage() async {
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImage = File(
+            image.path,
+          ); // Simpan path gambar buat ditampilkan
+        });
+      }
+    } catch (e) {
+      print("Error ambil gambar: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Gagal mengambil gambar")));
+    }
+  }
+
+  // --- FUNGSI SIMPAN BARANG ---
   Future<void> _saveItem() async {
     if (_nameController.text.isEmpty || _skuController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -45,9 +166,10 @@ class _AddItemPageState extends State<AddItemPage> {
     }
 
     setState(() => _isLoading = true);
-
     String url = "http://127.0.0.1/inventory_api/add_item.php";
+
     try {
+      // NOTE: Upload gambar butuh 'MultipartRequest', tapi untuk sekarang kita kirim data teks dulu biar gak error.
       final response = await http.post(
         Uri.parse(url),
         body: {
@@ -70,7 +192,7 @@ class _AddItemPageState extends State<AddItemPage> {
             content: Text(data['message']),
           ),
         );
-        Navigator.pop(context, true); // Kembali ke Dashboard & Refresh
+        Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(backgroundColor: Colors.red, content: Text(data['message'])),
@@ -107,7 +229,10 @@ class _AddItemPageState extends State<AddItemPage> {
               _skuController.clear();
               _nameController.clear();
               _descController.clear();
-              setState(() => _qty = 1);
+              setState(() {
+                _qty = 1;
+                _selectedImage = null;
+              });
             },
             child: Text("Reset", style: TextStyle(color: accentBlue)),
           ),
@@ -118,25 +243,36 @@ class _AddItemPageState extends State<AddItemPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 1. AREA FOTO (Placeholder)
-            Container(
-              height: 200,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: cardDark,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: textGrey.withOpacity(0.3),
-                  style: BorderStyle.solid,
+            // 1. AREA FOTO
+            GestureDetector(
+              onTap: _pickImage, // Panggil fungsi _pickImage saat diklik
+              child: Container(
+                height: 200,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: cardDark,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: textGrey.withOpacity(0.3)),
+                  image: _selectedImage != null
+                      ? DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.camera_alt, size: 40, color: accentBlue),
-                  const SizedBox(height: 10),
-                  Text("Tap to add photo", style: TextStyle(color: textGrey)),
-                ],
+                child: _selectedImage == null
+                    ? Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.camera_alt, size: 40, color: accentBlue),
+                          const SizedBox(height: 10),
+                          Text(
+                            "Tap to add photo",
+                            style: TextStyle(color: textGrey),
+                          ),
+                        ],
+                      )
+                    : null,
               ),
             ),
             const SizedBox(height: 15),
@@ -146,7 +282,7 @@ class _AddItemPageState extends State<AddItemPage> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {}, // Nanti dihubungkan ke Scanner
+                    onPressed: _scanBarcode,
                     icon: Icon(Icons.qr_code_scanner, color: accentBlue),
                     label: Text(
                       "Scan Barcode",
@@ -164,16 +300,14 @@ class _AddItemPageState extends State<AddItemPage> {
                 const SizedBox(width: 15),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: _pickImage,
                     icon: const Icon(Icons.image, color: Colors.white),
                     label: const Text(
                       "Gallery",
                       style: TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(
-                        0xFFD35400,
-                      ), // Warna Orange Bata sesuai UI
+                      backgroundColor: const Color(0xFFD35400),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -183,20 +317,16 @@ class _AddItemPageState extends State<AddItemPage> {
                 ),
               ],
             ),
-
             const SizedBox(height: 25),
 
             // 3. FORM INPUT
             _buildLabel("Barcode ID"),
             _buildInput(_skuController, "Scan or type ID", icon: Icons.qr_code),
-
             const SizedBox(height: 15),
             _buildLabel("Nama Barang"),
             _buildInput(_nameController, "Contoh: Laptop Asus ROG"),
-
             const SizedBox(height: 15),
 
-            // Row Jumlah & Lokasi
             Row(
               children: [
                 Expanded(
@@ -271,12 +401,14 @@ class _AddItemPageState extends State<AddItemPage> {
                               color: Colors.white,
                             ),
                             style: const TextStyle(color: Colors.white),
-                            items: _locations.map((String loc) {
-                              return DropdownMenuItem(
-                                value: loc,
-                                child: Text(loc),
-                              );
-                            }).toList(),
+                            items: _locations
+                                .map(
+                                  (String loc) => DropdownMenuItem(
+                                    value: loc,
+                                    child: Text(loc),
+                                  ),
+                                )
+                                .toList(),
                             onChanged: (val) =>
                                 setState(() => _selectedLocation = val!),
                           ),
@@ -290,12 +422,7 @@ class _AddItemPageState extends State<AddItemPage> {
 
             const SizedBox(height: 15),
             _buildLabel("Deskripsi"),
-            _buildInput(
-              _descController,
-              "Tambahkan catatan kondisi barang...",
-              maxLines: 3,
-            ),
-
+            _buildInput(_descController, "Tambahkan catatan...", maxLines: 3),
             const SizedBox(height: 30),
 
             // 4. TOMBOL SIMPAN
@@ -339,53 +466,45 @@ class _AddItemPageState extends State<AddItemPage> {
     );
   }
 
-  Widget _buildLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
+  Widget _buildLabel(String label) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      label,
+      style: const TextStyle(
+        color: Colors.white70,
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
       ),
-    );
-  }
-
+    ),
+  );
   Widget _buildInput(
     TextEditingController controller,
     String hint, {
     IconData? icon,
     int maxLines = 1,
-  }) {
-    return TextField(
-      controller: controller,
-      style: const TextStyle(color: Colors.white),
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: cardDark,
-        hintText: hint,
-        hintStyle: TextStyle(color: textGrey),
-        prefixIcon: icon != null ? Icon(icon, color: textGrey) : null,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF2A353E)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF2A353E)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: accentBlue),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 14,
-        ),
+  }) => TextField(
+    controller: controller,
+    style: const TextStyle(color: Colors.white),
+    maxLines: maxLines,
+    decoration: InputDecoration(
+      filled: true,
+      fillColor: cardDark,
+      hintText: hint,
+      hintStyle: TextStyle(color: textGrey),
+      prefixIcon: icon != null ? Icon(icon, color: textGrey) : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF2A353E)),
       ),
-    );
-  }
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF2A353E)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: accentBlue),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+  );
 }

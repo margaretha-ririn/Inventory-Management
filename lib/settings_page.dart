@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login_page.dart'; // Import buat Logout
+import 'login_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -9,14 +9,12 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool _isNotifOn = false; // State untuk switch notifikasi
+  bool _isNotifOn = false;
 
-  // Warna UI
   final Color bgMain = const Color(0xFF0F161C);
   final Color cardDark = const Color(0xFF192229);
-  final Color cardBlue2 = const Color(0xFF00C6FF);
+  final Color accentBlue = const Color(0xFF00C6FF);
   final Color textGrey = const Color(0xFF8B959E);
-  final Color textWhite = Colors.white;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +23,7 @@ class _SettingsPageState extends State<SettingsPage> {
       appBar: AppBar(
         backgroundColor: bgMain,
         elevation: 0,
-        automaticallyImplyLeading:
-            false, // Hilangkan tombol back karena ini Tab
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text(
           "Pengaturan",
@@ -37,12 +34,33 @@ class _SettingsPageState extends State<SettingsPage> {
         padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            // 1. PROFIL SECTION
-            const CircleAvatar(
-              radius: 50,
-              backgroundImage: NetworkImage(
-                "https://i.pravatar.cc/150?img=12",
-              ), // Foto Dummy
+            // PROFIL
+            Stack(
+              children: [
+                const CircleAvatar(
+                  radius: 50,
+                  backgroundImage: NetworkImage(
+                    "https://i.pravatar.cc/150?img=12",
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: accentBlue,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: bgMain, width: 3),
+                    ),
+                    child: const Icon(
+                      Icons.edit,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 15),
             const Text(
@@ -60,14 +78,16 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
 
+            // Tombol Edit Profil (Biru Panjang)
             SizedBox(
-              width: 200,
+              width: double.infinity,
+              height: 45,
               child: ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: cardBlue2,
+                  backgroundColor: const Color(0xFF2196F3),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(25),
                   ),
                 ),
                 child: const Text(
@@ -81,37 +101,34 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 30),
 
-            // 2. LIST MENU (AKUN)
+            // MENU SECTION
             _buildSectionLabel("AKUN"),
-            _buildMenuItem(Icons.lock_outline, "Ubah Password", onTap: () {}),
+            _buildMenuItem(Icons.lock_outline, "Ubah Password", Colors.blue),
             _buildMenuItem(
               Icons.email_outlined,
               "Email & Notifikasi",
-              onTap: () {},
+              Colors.blue,
             ),
 
             const SizedBox(height: 20),
-
-            // 3. LIST MENU (PREFERENSI)
             _buildSectionLabel("PREFERENSI"),
             _buildMenuItem(
               Icons.palette_outlined,
               "Tema Aplikasi",
-              trailing: Text("Terang", style: TextStyle(color: textGrey)),
-              onTap: () {},
+              Colors.purple,
+              trailing: "Terang",
             ),
             _buildMenuItem(
               Icons.language,
               "Bahasa",
-              trailing: Text("Indonesia", style: TextStyle(color: textGrey)),
-              onTap: () {},
+              Colors.purple,
+              trailing: "Indonesia",
             ),
             Container(
               margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
                 color: cardDark,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFF2A353E)),
               ),
               child: SwitchListTile(
                 title: const Text(
@@ -125,7 +142,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 secondary: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE1BEE7),
+                    color: Colors.purple.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
@@ -134,46 +151,37 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
                 value: _isNotifOn,
-                activeColor: cardBlue2,
+                activeColor: accentBlue,
                 onChanged: (val) => setState(() => _isNotifOn = val),
               ),
             ),
 
             const SizedBox(height: 20),
-
-            // 4. LIST MENU (TENTANG)
             _buildSectionLabel("TENTANG"),
             _buildMenuItem(
               Icons.description_outlined,
               "Syarat & Ketentuan",
-              iconColor: Colors.orange,
-              bgColor: const Color(0xFFFFE0B2),
-              onTap: () {},
+              Colors.orange,
             ),
             _buildMenuItem(
               Icons.info_outline,
               "Versi App",
-              iconColor: Colors.orange,
-              bgColor: const Color(0xFFFFE0B2),
-              trailing: Text("v1.0.0 Beta", style: TextStyle(color: textGrey)),
-              onTap: () {},
+              Colors.orange,
+              trailing: "v1.0.0 Beta",
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 40),
 
-            // 5. LOGOUT BUTTON
+            // Tombol Keluar (Putih Border Merah)
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton.icon(
-                onPressed: () {
-                  // Logout Logic: Kembali ke Login Page & Hapus History Navigasi
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false,
-                  );
-                },
+                onPressed: () => Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                  (route) => false,
+                ),
                 icon: const Icon(Icons.logout, color: Color(0xFFE53935)),
                 label: const Text(
                   "Keluar dari Akun",
@@ -192,10 +200,10 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
             const SizedBox(height: 20),
             Text(
-              "Inventory Manager Mobile © 2025",
-              style: TextStyle(color: textGrey.withOpacity(0.5), fontSize: 10),
+              "Inventory Manager Mobile © 2023",
+              style: TextStyle(color: textGrey, fontSize: 10),
             ),
-            const SizedBox(height: 80), // Space buat Navbar
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -222,11 +230,9 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget _buildMenuItem(
     IconData icon,
-    String title, {
-    Widget? trailing,
-    VoidCallback? onTap,
-    Color? iconColor,
-    Color? bgColor,
+    String title,
+    Color color, {
+    String? trailing,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -236,14 +242,13 @@ class _SettingsPageState extends State<SettingsPage> {
         border: Border.all(color: const Color(0xFF2A353E)),
       ),
       child: ListTile(
-        onTap: onTap,
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: bgColor ?? const Color(0xFFB3E5FC),
+            color: color.withOpacity(0.1),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, color: iconColor ?? const Color(0xFF0288D1)),
+          child: Icon(icon, color: color),
         ),
         title: Text(
           title,
@@ -253,9 +258,10 @@ class _SettingsPageState extends State<SettingsPage> {
             fontSize: 14,
           ),
         ),
-        trailing:
-            trailing ??
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        trailing: trailing != null
+            ? Text(trailing, style: TextStyle(color: textGrey, fontSize: 12))
+            : const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        onTap: () {},
       ),
     );
   }

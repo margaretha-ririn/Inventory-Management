@@ -248,14 +248,12 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   ),
                   const SizedBox(height: 15),
                   if (lowStockList != null)
-                    ...lowStockList
-                        .map(
-                          (item) => _buildAttentionItem(
-                            item['name'],
-                            item['stock'].toString(),
-                          ),
-                        )
-                        .toList(),
+                    ...lowStockList.map(
+                      (item) => _buildAttentionItem(
+                        item['name'],
+                        item['stock'].toString(),
+                      ),
+                    ),
 
                   const SizedBox(height: 25),
 
