@@ -42,19 +42,20 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
 
 *Library/Framework yang digunakan:
 
-  Flutter SDK: Framework UI Utama
-  
-  Dart: Bahasa Pemrograman utama dalam Pengembangan aplikasi Flutter
-  
-  Flutter SDK Tools: Digunakan untuk build aplikasi, debugging, hot reload, dan manajemen dependensi
-  
-  Android SDK: Digunakan sebagai platform target untuk deployment aplikasi Android
+    Flutter SDK: Framework UI Utama
+    
+    Dart: Bahasa Pemrograman utama dalam Pengembangan aplikasi Flutter
+    
+    Flutter SDK Tools: Digunakan untuk build aplikasi, debugging, hot reload, dan manajemen dependensi
+    
+    Android SDK: Digunakan sebagai platform target untuk deployment aplikasi Android
   
 *Public/Private API yang digunakan:
 
   Private API: 
-               1. Autentikasi Pengguna (Login & Register)
   
+               1. Autentikasi Pengguna (Login & Register)
+
                2. Manajemen Data Barang
                
                3. Transaksi stok masuk dan kelusr
@@ -83,26 +84,35 @@ Inventory Management App adalah aplikasi mobile berbasis Android yang dikembangk
     Clone repository
   
     Salin project dari GitHub ke komputer:
+   
       git clone https://github.com/margaretha-ririn/Inventory-Management.git
     
     Masuk ke folder project Pindah ke direktori project:
+   
       cd Inventory-Management
     
     Install dependencies Install semua package yang diperlukan aplikasi:
+   
       flutter pub get
       
     Cek device atau emulator Pastikan tersedia device untuk menjalankan aplikasi:
+   
       flutter devices
+   
     Bisa menggunakan emulator Android/iOS atau perangkat fisik yang terhubung.
   
     Jalankan aplikasi Jalankan aplikasi pada device yang tersedia:
+   
       flutter run
       
     Mode release (opsional) Untuk versi final yang lebih cepat dan siap digunakan:
+   
       flutter run --release
     
     Troubleshooting Jika terjadi error dependency:
+   
       flutter clean
+   
       flutter pub get
     
 Jika Flutter tidak dikenali, pastikan Flutter sudah terinstall dan PATH telah dikonfigurasi. Jika device tidak muncul, periksa emulator atau pastikan perangkat fisik berada dalam mode developer.
