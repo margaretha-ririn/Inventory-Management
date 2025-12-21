@@ -3,10 +3,12 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
-// --- IMPORT HALAMAN LAIN ---
+// --- IMPORT SEMUA HALAMAN ---
 import 'barcode_page.dart';
 import 'history_page.dart';
 import 'add_item_page.dart';
+import 'analytics_page.dart'; // Halaman Laporan
+import 'settings_page.dart'; // Halaman Setting Baru
 
 class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
@@ -16,7 +18,10 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  // --- Variabel Data ---
+  // --- Index Navbar ---
+  int _selectedIndex = 0; // 0: Beranda, 1: Barang, 2: Laporan, 3: Setting
+
+  // --- Variabel Data Dashboard ---
   Map<String, dynamic>? dashboardData;
   bool isLoadingDashboard = true;
   bool isError = false;
@@ -26,9 +31,8 @@ class _DashboardPageState extends State<DashboardPage> {
   List<dynamic> searchResults = [];
   bool isSearching = false;
   bool isLoadingSearch = false;
-  int _selectedIndex = 0;
 
-  // --- Warna UI (Dark Theme) ---
+  // --- Warna UI ---
   final Color bgMain = const Color(0xFF0F161C);
   final Color cardBlue1 = const Color(0xFF007AFF);
   final Color cardBlue2 = const Color(0xFF00C6FF);
@@ -44,30 +48,30 @@ class _DashboardPageState extends State<DashboardPage> {
     _fetchDashboardData();
   }
 
-  // 1. FUNGSI AMBIL DATA DASHBOARD
+  // --- FUNGSI DATA & LOGIC ---
   Future<void> _fetchDashboardData() async {
     String url = "http://127.0.0.1/inventory_api/dashboard.php";
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
-        setState(() {
-          dashboardData = jsonDecode(response.body);
-          isLoadingDashboard = false;
-          isError = false;
-        });
+        if (mounted)
+          setState(() {
+            dashboardData = jsonDecode(response.body);
+            isLoadingDashboard = false;
+            isError = false;
+          });
       } else {
-        throw Exception("Gagal load data");
+        throw Exception("Gagal");
       }
     } catch (e) {
-      print("Error dashboard: $e");
-      setState(() {
-        isLoadingDashboard = false;
-        isError = true;
-      });
+      if (mounted)
+        setState(() {
+          isLoadingDashboard = false;
+          isError = true;
+        });
     }
   }
 
-  // 2. FUNGSI PENCARIAN
   Future<void> _searchItems(String query) async {
     if (query.isEmpty) {
       setState(() {
@@ -76,28 +80,26 @@ class _DashboardPageState extends State<DashboardPage> {
       });
       return;
     }
-
     setState(() {
       isSearching = true;
       isLoadingSearch = true;
     });
-
     String url = "http://127.0.0.1/inventory_api/search.php?query=$query";
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        setState(() {
-          searchResults = data['data'];
-          isLoadingSearch = false;
-        });
+        if (mounted)
+          setState(() {
+            searchResults = data['data'];
+            isLoadingSearch = false;
+          });
       }
     } catch (e) {
-      setState(() => isLoadingSearch = false);
+      if (mounted) setState(() => isLoadingSearch = false);
     }
   }
 
-  // 3. FUNGSI RESTOCK (UPDATE STOK)
   Future<void> _submitRestock(String id, String qty) async {
     String url = "http://127.0.0.1/inventory_api/restock.php";
     try {
@@ -106,18 +108,16 @@ class _DashboardPageState extends State<DashboardPage> {
         body: {'id': id, 'quantity': qty},
       );
       final data = jsonDecode(response.body);
-
+      if (!mounted) return;
       if (data['success'] == true) {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
             content: Text(data['message']),
           ),
         );
-        _fetchDashboardData(); // Refresh Dashboard otomatis
+        _fetchDashboardData();
       } else {
-        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(backgroundColor: Colors.red, content: Text(data['message'])),
         );
@@ -127,7 +127,6 @@ class _DashboardPageState extends State<DashboardPage> {
     }
   }
 
-  // 4. DIALOG RESTOCK
   Future<void> _showRestockDialog(String id, String name) async {
     TextEditingController qtyController = TextEditingController();
     return showDialog(
@@ -164,7 +163,7 @@ class _DashboardPageState extends State<DashboardPage> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: bgMain,
-                  hintText: "Masukkan jumlah (misal: 10)",
+                  hintText: "Masukkan jumlah",
                   hintStyle: TextStyle(color: textGrey),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -200,7 +199,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // 5. POP-UP NOTIFIKASI
   void _showNotifications() {
     List lowStockItems =
         (dashboardData != null && dashboardData!['low_stock'] != null)
@@ -261,66 +259,12 @@ class _DashboardPageState extends State<DashboardPage> {
                         itemCount: lowStockItems.length,
                         itemBuilder: (context, index) {
                           var item = lowStockItems[index];
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: bgMain,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: alertRed.withOpacity(0.3),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  Icons.warning_amber_rounded,
-                                  color: alertRed,
-                                  size: 30,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item['name'],
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Text(
-                                        "Sisa Stok: ${item['stock']} Unit",
-                                        style: TextStyle(
-                                          color: textGrey,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: alertRed.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    "Segera Restock",
-                                    style: TextStyle(
-                                      color: alertRed,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          return _buildAlertCard(
+                            item['id'].toString(),
+                            item['name'],
+                            item['sku'],
+                            item['stock'].toString(),
+                            showBtn: true,
                           );
                         },
                       ),
@@ -342,171 +286,64 @@ class _DashboardPageState extends State<DashboardPage> {
     return currencyFormatter.format(double.tryParse(number.toString()) ?? 0);
   }
 
+  // --- MAIN BUILD ---
   @override
   Widget build(BuildContext context) {
+    // DAFTAR HALAMAN UNTUK NAVBAR
+    final List<Widget> pages = [
+      _buildHomeContent(), // 0: Beranda (Konten Dashboard Asli)
+      const Center(
+        child: Text(
+          "Halaman Barang (Placeholder)",
+          style: TextStyle(color: Colors.white),
+        ),
+      ), // 1: Barang (Bisa diganti List Barang nanti)
+      const AnalyticsPage(), // 2: Laporan (Halaman Analitik)
+      const SettingsPage(), // 3: Setting (Halaman Setting Baru)
+    ];
+
     return Scaffold(
       backgroundColor: bgMain,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // --- HEADER & SEARCH BAR ---
-            Container(
-              padding: const EdgeInsets.all(20),
-              color: bgMain,
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          const CircleAvatar(
-                            radius: 20,
-                            backgroundImage: NetworkImage(
-                              "https://i.pravatar.cc/150?img=12",
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "DASHBOARD",
-                                style: TextStyle(
-                                  color: textGrey,
-                                  fontSize: 10,
-                                  letterSpacing: 1.2,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const Row(
-                                children: [
-                                  Text(
-                                    "Halo, Mahasiswa",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 5),
-                                  Text("👋", style: TextStyle(fontSize: 16)),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                      GestureDetector(
-                        onTap: _showNotifications,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: cardDark,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Stack(
-                            children: [
-                              Icon(
-                                Icons.notifications_outlined,
-                                color: textGrey,
-                              ),
-                              Positioned(
-                                right: 0,
-                                top: 0,
-                                child: Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: Colors.red,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  TextField(
-                    controller: _searchController,
-                    style: TextStyle(color: textWhite),
-                    onChanged: (value) => _searchItems(value),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: cardDark,
-                      hintText: "Cari barang, SKU...",
-                      hintStyle: TextStyle(color: textGrey),
-                      prefixIcon: Icon(Icons.search, color: textGrey),
-                      suffixIcon: isSearching
-                          ? IconButton(
-                              icon: const Icon(Icons.close, color: Colors.grey),
-                              onPressed: () {
-                                _searchController.clear();
-                                _searchItems("");
-                                FocusScope.of(context).unfocus();
-                              },
-                            )
-                          : null,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        vertical: 0,
-                        horizontal: 20,
-                      ),
-                    ),
+      // Body berubah sesuai index navbar
+      body: SafeArea(child: pages[_selectedIndex]),
+
+      // Tombol Scan hanya muncul di Halaman Beranda (0) atau Barang (1) agar tidak menutupi Setting
+      floatingActionButton: _selectedIndex <= 1
+          ? Container(
+              height: 65,
+              width: 65,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: cardBlue2.withOpacity(0.4),
+                    blurRadius: 15,
+                    spreadRadius: 2,
                   ),
                 ],
               ),
-            ),
-            // --- KONTEN ---
-            Expanded(
-              child: isSearching
-                  ? _buildSearchResults()
-                  : _buildDashboardContent(),
-            ),
-          ],
-        ),
-      ),
-
-      // --- FAB SCANNER ---
-      floatingActionButton: Container(
-        height: 65,
-        width: 65,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: cardBlue2.withOpacity(0.4),
-              blurRadius: 15,
-              spreadRadius: 2,
-            ),
-          ],
-        ),
-        child: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const BarcodePage()),
-            );
-          },
-          backgroundColor: cardBlue2,
-          shape: const CircleBorder(),
-          elevation: 0,
-          child: const Icon(
-            Icons.qr_code_scanner,
-            color: Colors.white,
-            size: 30,
-          ),
-        ),
-      ),
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const BarcodePage(),
+                    ),
+                  );
+                },
+                backgroundColor: cardBlue2,
+                shape: const CircleBorder(),
+                elevation: 0,
+                child: const Icon(
+                  Icons.qr_code_scanner,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ),
+            )
+          : null, // Hilangkan FAB di halaman Laporan & Setting biar bersih
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
-      // --- BOTTOM NAVBAR ---
       bottomNavigationBar: BottomAppBar(
         color: cardDark,
         shape: const CircularNotchedRectangle(),
@@ -518,7 +355,7 @@ class _DashboardPageState extends State<DashboardPage> {
             children: [
               _buildNavItem(Icons.grid_view_rounded, "Beranda", 0),
               _buildNavItem(Icons.inventory_2_outlined, "Barang", 1),
-              const SizedBox(width: 40),
+              const SizedBox(width: 40), // Spasi buat FAB
               _buildNavItem(Icons.insert_chart_outlined, "Laporan", 2),
               _buildNavItem(Icons.settings_outlined, "Setting", 3),
             ],
@@ -528,22 +365,137 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildDashboardContent() {
-    if (isLoadingDashboard)
+  // --- KONTEN BERANDA (DASHBOARD LAMA DIPINDAH KESINI) ---
+  Widget _buildHomeContent() {
+    return Column(
+      children: [
+        // HEADER & SEARCH
+        Container(
+          padding: const EdgeInsets.all(20),
+          color: bgMain,
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(
+                          "https://i.pravatar.cc/150?img=12",
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "DASHBOARD",
+                            style: TextStyle(
+                              color: textGrey,
+                              fontSize: 10,
+                              letterSpacing: 1.2,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Row(
+                            children: [
+                              Text(
+                                "Halo, Mahasiswa",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 5),
+                              Text("👋", style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                    onTap: _showNotifications,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: cardDark,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Stack(
+                        children: [
+                          Icon(Icons.notifications_outlined, color: textGrey),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: _searchController,
+                style: TextStyle(color: textWhite),
+                onChanged: (value) => _searchItems(value),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: cardDark,
+                  hintText: "Cari barang, SKU...",
+                  hintStyle: TextStyle(color: textGrey),
+                  prefixIcon: Icon(Icons.search, color: textGrey),
+                  suffixIcon: isSearching
+                      ? IconButton(
+                          icon: const Icon(Icons.close, color: Colors.grey),
+                          onPressed: () {
+                            _searchController.clear();
+                            _searchItems("");
+                            FocusScope.of(context).unfocus();
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 0,
+                    horizontal: 20,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: isSearching ? _buildSearchResults() : _buildDashboardWidgets(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDashboardWidgets() {
+    if (isLoadingDashboard) {
       return Center(child: CircularProgressIndicator(color: cardBlue1));
+    }
     if (isError || dashboardData == null) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: Colors.red, size: 40),
-            const SizedBox(height: 10),
-            Text("Gagal memuat data", style: TextStyle(color: textGrey)),
-            TextButton(
-              onPressed: _fetchDashboardData,
-              child: const Text("Coba Lagi"),
-            ),
-          ],
+        child: TextButton(
+          onPressed: _fetchDashboardData,
+          child: const Text("Gagal load data. Coba lagi."),
         ),
       );
     }
@@ -558,7 +510,6 @@ class _DashboardPageState extends State<DashboardPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 5),
-          // Total Aset Card
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -641,8 +592,6 @@ class _DashboardPageState extends State<DashboardPage> {
             ),
           ),
           const SizedBox(height: 30),
-
-          // AKSI CEPAT (GRID MENU)
           const Text(
             "Aksi Cepat",
             style: TextStyle(
@@ -659,54 +608,43 @@ class _DashboardPageState extends State<DashboardPage> {
                 Icons.qr_code_scanner,
                 "Scan",
                 Colors.indigoAccent,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BarcodePage(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const BarcodePage()),
+                ),
               ),
               _buildActionIcon(
                 Icons.add_box_outlined,
                 "Tambah",
                 Colors.teal,
                 onTap: () async {
-                  // Navigasi dan tunggu hasilnya (apakah ada barang baru?)
-                  final result = await Navigator.push(
+                  final res = await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const AddItemPage(),
                     ),
                   );
-
-                  // Kalau sukses nambah barang, refresh dashboard otomatis
-                  if (result == true) {
-                    _fetchDashboardData();
-                  }
+                  if (res == true) _fetchDashboardData();
                 },
               ),
-
-              // --- NAVIGASI KE RIWAYAT ---
+              _buildActionIcon(
+                Icons.bar_chart,
+                "Laporan",
+                Colors.orange,
+                onTap: () => setState(() => _selectedIndex = 2),
+              ), // Pindah Tab ke Laporan
               _buildActionIcon(
                 Icons.history,
                 "Riwayat",
                 Colors.purple,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HistoryPage(),
-                    ),
-                  );
-                },
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HistoryPage()),
+                ),
               ),
             ],
           ),
-
           const SizedBox(height: 30),
-          // LOW STOCK LIST
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -758,13 +696,12 @@ class _DashboardPageState extends State<DashboardPage> {
                         item['name'],
                         item['sku'],
                         item['stock'].toString(),
+                        showBtn: true,
                       );
                     },
                   ),
           ),
           const SizedBox(height: 30),
-
-          // RECENT ACTIVITY
           const Row(
             children: [
               Icon(
@@ -809,19 +746,15 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- WIDGET HELPER ---
+  // --- WIDGET HELPERS ---
   Widget _buildSearchResults() {
     if (isLoadingSearch)
       return Center(child: CircularProgressIndicator(color: cardBlue2));
     if (searchResults.isEmpty)
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off, size: 80, color: textGrey.withOpacity(0.3)),
-            const SizedBox(height: 10),
-            Text("Tidak ditemukan barang.", style: TextStyle(color: textGrey)),
-          ],
+        child: Text(
+          "Tidak ditemukan barang.",
+          style: TextStyle(color: textGrey),
         ),
       );
     return ListView.builder(
@@ -862,19 +795,9 @@ class _DashboardPageState extends State<DashboardPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        "SKU: ${item['sku']}",
-                        style: TextStyle(color: textGrey, fontSize: 10),
-                      ),
+                    Text(
+                      "SKU: ${item['sku']}",
+                      style: TextStyle(color: textGrey, fontSize: 10),
                     ),
                   ],
                 ),
@@ -932,7 +855,6 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // Update: Tambahkan onTap
   Widget _buildActionIcon(
     IconData icon,
     String label,
@@ -960,7 +882,13 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _buildAlertCard(String id, String name, String sku, String stock) {
+  Widget _buildAlertCard(
+    String id,
+    String name,
+    String sku,
+    String stock, {
+    bool showBtn = false,
+  }) {
     return Container(
       width: 260,
       margin: const EdgeInsets.only(right: 15),
@@ -1026,28 +954,29 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           ),
           const Spacer(),
-          GestureDetector(
-            onTap: () => _showRestockDialog(id, name),
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              decoration: BoxDecoration(
-                color: alertRed.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: alertRed.withOpacity(0.3)),
-              ),
-              child: Center(
-                child: Text(
-                  "Restock Segera",
-                  style: TextStyle(
-                    color: alertRed,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+          if (showBtn)
+            GestureDetector(
+              onTap: () => _showRestockDialog(id, name),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  color: alertRed.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: alertRed.withOpacity(0.3)),
+                ),
+                child: Center(
+                  child: Text(
+                    "Restock Segera",
+                    style: TextStyle(
+                      color: alertRed,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -1134,6 +1063,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
+  // LOGIC NAVBAR
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
