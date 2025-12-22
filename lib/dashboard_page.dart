@@ -49,6 +49,17 @@ class _DashboardPageState extends State<DashboardPage> {
     _fetchDashboardData();
   }
 
+  // --- PERBAIKAN REALTIME: Fungsi navigasi yang memicu refresh data ---
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Setiap kali user kembali ke tab Beranda (index 0), tarik data terbaru dari PHP
+    if (index == 0) {
+      _fetchDashboardData();
+    }
+  }
+
   // --- FUNGSI DATA & LOGIC ---
   Future<void> _fetchDashboardData() async {
     String url = "http://127.0.0.1/inventory_api/dashboard.php";
@@ -121,6 +132,7 @@ class _DashboardPageState extends State<DashboardPage> {
             content: Text(data['message']),
           ),
         );
+        // --- SINKRONISASI: Langsung fetch ulang agar kartu 'Perlu Perhatian' hilang ---
         _fetchDashboardData();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -186,8 +198,10 @@ class _DashboardPageState extends State<DashboardPage> {
               style: ElevatedButton.styleFrom(backgroundColor: accentGreen),
               onPressed: () async {
                 if (qtyController.text.isNotEmpty) {
-                  await _submitRestock(id, qtyController.text);
+                  String qty = qtyController.text;
                   Navigator.pop(context);
+                  await _submitRestock(id, qty);
+                  await _fetchDashboardData();
                 }
               },
               child: const Text(
@@ -206,8 +220,8 @@ class _DashboardPageState extends State<DashboardPage> {
 
   void _showNotifications() {
     List lowStockItems =
-        (dashboardData != null && dashboardData!['low_stock'] != null)
-        ? dashboardData!['low_stock']
+        (dashboardData != null && dashboardData!['low_stock_list'] != null)
+        ? dashboardData!['low_stock_list']
         : [];
     showModalBottomSheet(
       context: context,
@@ -420,7 +434,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- KONTEN BERANDA (Ini yang tadi hilang, sekarang saya balikin Full) ---
+  // --- KONTEN BERANDA ---
   Widget _buildHomeContent() {
     return Column(
       children: [
@@ -536,9 +550,15 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ),
 
-        // 2. Konten Scrollable (Card, Grid Menu, Low Stock, Activity)
+        // 2. Konten Scrollable dengan RefreshIndicator
         Expanded(
-          child: isSearching ? _buildSearchResults() : _buildDashboardWidgets(),
+          child: RefreshIndicator(
+            onRefresh: _fetchDashboardData,
+            color: cardBlue2,
+            child: isSearching
+                ? _buildSearchResults()
+                : _buildDashboardWidgets(),
+          ),
         ),
       ],
     );
@@ -566,10 +586,11 @@ class _DashboardPageState extends State<DashboardPage> {
     }
 
     var stats = dashboardData?['stats'];
-    var lowStock = dashboardData?['low_stock'] as List?;
+    var lowStock = dashboardData?['low_stock_list'] as List?;
     var activity = dashboardData?['recent_activity'] as List?;
 
     return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -659,7 +680,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
           const SizedBox(height: 30),
 
-          // GRID MENU (AKSI CEPAT) - Saya balikin layout lengkapnya
+          // GRID MENU (AKSI CEPAT)
           const Text(
             "Aksi Cepat",
             style: TextStyle(
@@ -817,7 +838,7 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // --- WIDGET HELPER UI LENGKAP (TIDAK ADA YANG DIPOTONG) ---
+  // --- WIDGET HELPER UI LENGKAP ---
 
   Widget _buildSearchResults() {
     if (isLoadingSearch) {
@@ -1144,11 +1165,11 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  // NAV ITEM
+  // NAV ITEM DIPERBAIKI: Menggunakan _onItemTapped untuk memicu refresh data
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: () => _onItemTapped(index), // Panggil fungsi tap khusus refresh
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

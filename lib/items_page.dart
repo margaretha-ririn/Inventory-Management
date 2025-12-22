@@ -16,9 +16,9 @@ class _ItemsPageState extends State<ItemsPage> {
   String errorMessage = "";
 
   // --- STATE SEARCH & FILTER ---
-  bool isSearching = false; // Mode cari aktif/tidak
+  bool isSearching = false;
   TextEditingController searchController = TextEditingController();
-  String selectedSort = 'newest'; // Default filter: Terbaru
+  String selectedSort = 'newest';
 
   // Warna UI
   final Color bgMain = const Color(0xFF0F161C);
@@ -34,11 +34,9 @@ class _ItemsPageState extends State<ItemsPage> {
     _fetchItems();
   }
 
-  // --- FUNGSI AMBIL DATA (PINTAR) ---
+  // --- FUNGSI AMBIL DATA ---
   Future<void> _fetchItems({String query = ""}) async {
     setState(() => isLoading = true);
-
-    // Kirim parameter search & sort ke PHP
     String url =
         "http://127.0.0.1/inventory_api/items.php?search=$query&sort=$selectedSort";
 
@@ -65,7 +63,130 @@ class _ItemsPageState extends State<ItemsPage> {
     }
   }
 
-  // --- FUNGSI TAMPILKAN FILTER ---
+  // --- FUNGSI UPDATE DATA (KE PHP) ---
+  Future<void> _updateItemSimple(var id, String newQty, String newPrice) async {
+    try {
+      final response = await http.post(
+        Uri.parse("http://127.0.0.1/inventory_api/update_item_simple.php"),
+        body: {"id": id.toString(), "stock": newQty, "price": newPrice},
+      );
+
+      // Cek apakah response berupa JSON
+      final resData = jsonDecode(response.body);
+
+      if (resData['success'] == true) {
+        if (!mounted) return;
+        Navigator.pop(context); // Tutup dialog
+        _fetchItems(query: searchController.text); // Refresh data
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Berhasil diupdate!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        debugPrint("Server Error: ${resData['message']}");
+      }
+    } catch (e) {
+      // Jika muncul FormatException, biasanya PHP kamu kirim Error HTML bukannya JSON
+      debugPrint("Update error (Biasanya PHP Error): $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Gagal Update: Cek file PHP kamu"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  // --- DIALOG EDIT POP-UP ---
+  void _showQuickEditDialog(Map item) {
+    TextEditingController qtyController = TextEditingController(
+      text: item['stock'].toString(),
+    );
+    TextEditingController priceController = TextEditingController(
+      text: item['price'].toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: cardDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          "Edit ${item['name']}",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildPopupInput(qtyController, "Jumlah Stok", Icons.inventory),
+            const SizedBox(height: 15),
+            _buildPopupInput(priceController, "Harga (Rp)", Icons.payments),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text("Batal", style: TextStyle(color: textGrey)),
+          ),
+          // TOMBOL SIMPAN YANG SUDAH DIPERBAIKI
+          TextButton(
+            style: TextButton.styleFrom(
+              backgroundColor: accentBlue,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () {
+              _updateItemSimple(
+                item['id'],
+                qtyController.text,
+                priceController.text,
+              );
+            },
+            child: const Text(
+              "Simpan",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPopupInput(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: textGrey, fontSize: 12),
+        prefixIcon: Icon(icon, color: accentBlue, size: 20),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: textGrey.withOpacity(0.3)),
+        ),
+        focusedBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: accentBlue),
+        ),
+      ),
+    );
+  }
+
+  // --- FUNGSI FILTER ---
   void _showFilterSheet() {
     showModalBottomSheet(
       context: context,
@@ -109,9 +230,9 @@ class _ItemsPageState extends State<ItemsPage> {
       ),
       trailing: isSelected ? Icon(Icons.check, color: accentBlue) : null,
       onTap: () {
-        setState(() => selectedSort = value); // Ubah filter
-        _fetchItems(query: searchController.text); // Refresh data
-        Navigator.pop(context); // Tutup modal
+        setState(() => selectedSort = value);
+        _fetchItems(query: searchController.text);
+        Navigator.pop(context);
       },
     );
   }
@@ -133,7 +254,6 @@ class _ItemsPageState extends State<ItemsPage> {
         backgroundColor: bgMain,
         elevation: 0,
         automaticallyImplyLeading: false,
-        // --- LOGIKA JUDUL SEARCH BAR ---
         title: isSearching
             ? TextField(
                 controller: searchController,
@@ -144,10 +264,7 @@ class _ItemsPageState extends State<ItemsPage> {
                   hintStyle: TextStyle(color: textGrey),
                   border: InputBorder.none,
                 ),
-                onChanged: (val) {
-                  // Otomatis cari saat ngetik (Delay dikit biar smooth)
-                  _fetchItems(query: val);
-                },
+                onChanged: (val) => _fetchItems(query: val),
               )
             : const Text(
                 "Daftar Barang",
@@ -156,9 +273,7 @@ class _ItemsPageState extends State<ItemsPage> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-
         actions: [
-          // TOMBOL SEARCH
           IconButton(
             icon: Icon(
               isSearching ? Icons.close : Icons.search,
@@ -167,17 +282,15 @@ class _ItemsPageState extends State<ItemsPage> {
             onPressed: () {
               setState(() {
                 if (isSearching) {
-                  // Kalau ditutup, reset pencarian
                   isSearching = false;
                   searchController.clear();
-                  _fetchItems(); // Ambil semua data lagi
+                  _fetchItems();
                 } else {
                   isSearching = true;
                 }
               });
             },
           ),
-          // TOMBOL FILTER
           IconButton(
             icon: Icon(
               Icons.filter_list,
@@ -220,85 +333,89 @@ class _ItemsPageState extends State<ItemsPage> {
                 double price = double.tryParse(item['price'].toString()) ?? 0;
                 bool isLow = stock <= 5;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 15),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: cardDark,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFF2A353E)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 50,
-                        height: 50,
-                        decoration: BoxDecoration(
-                          color: isLow
-                              ? alertRed.withOpacity(0.1)
-                              : accentBlue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
+                return InkWell(
+                  onTap: () => _showQuickEditDialog(item),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 15),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: cardDark,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFF2A353E)),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: isLow
+                                ? alertRed.withOpacity(0.1)
+                                : accentBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            Icons.inventory_2_outlined,
+                            color: isLow ? alertRed : accentBlue,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.inventory_2_outlined,
-                          color: isLow ? alertRed : accentBlue,
+                        const SizedBox(width: 15),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item['name'] ?? "Tanpa Nama",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "SKU: ${item['sku']}",
+                                style: TextStyle(color: textGrey, fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 15),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             Text(
-                              item['name'] ?? "Tanpa Nama",
-                              style: const TextStyle(
-                                color: Colors.white,
+                              formatRupiah(price),
+                              style: TextStyle(
+                                color: accentBlue,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              "SKU: ${item['sku']}",
-                              style: TextStyle(color: textGrey, fontSize: 12),
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isLow
+                                    ? alertRed.withOpacity(0.2)
+                                    : successGreen.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                isLow ? "Stok: $stock" : "$stock Unit",
+                                style: TextStyle(
+                                  color: isLow ? alertRed : successGreen,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            formatRupiah(price),
-                            style: TextStyle(
-                              color: accentBlue,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isLow
-                                  ? alertRed.withOpacity(0.2)
-                                  : successGreen.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              isLow ? "Stok: $stock" : "$stock Unit",
-                              style: TextStyle(
-                                color: isLow ? alertRed : successGreen,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },

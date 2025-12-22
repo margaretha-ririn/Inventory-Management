@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart'; // Wajib install fl_chart dulu
+import 'package:fl_chart/fl_chart.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -14,8 +14,9 @@ class AnalyticsPage extends StatefulWidget {
 class _AnalyticsPageState extends State<AnalyticsPage> {
   bool isLoading = true;
   Map<String, dynamic>? data;
+  String selectedFilter = "Bulan Ini"; // State untuk filter aktif
 
-  // Warna UI (Sesuai Desain)
+  // Warna UI
   final Color bgMain = const Color(0xFF0F161C);
   final Color cardDark = const Color(0xFF192229);
   final Color accentBlue = const Color(0xFF00C6FF);
@@ -31,8 +32,14 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     _fetchData();
   }
 
+  // Fungsi ambil data diperbarui dengan parameter filter
   Future<void> _fetchData() async {
-    String url = "http://127.0.0.1/inventory_api/analytics.php";
+    setState(() => isLoading = true);
+
+    // Kirim filter ke backend (Bulan Ini / Tahun Ini)
+    String url =
+        "http://127.0.0.1/inventory_api/analytics.php?filter=$selectedFilter";
+
     try {
       final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
@@ -42,14 +49,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
         });
       }
     } catch (e) {
-      print(e);
+      debugPrint("Error Fetch Analytics: $e");
       setState(() => isLoading = false);
     }
   }
 
   String formatRupiah(var number) {
     if (number == null) return "Rp 0";
-    // Format singkatan (contoh: 15jt) biar muat di kartu kecil
     double val = double.tryParse(number.toString()) ?? 0;
     if (val >= 1000000) {
       return "Rp ${(val / 1000000).toStringAsFixed(1)}jt";
@@ -66,7 +72,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   Widget build(BuildContext context) {
     var stats = data?['stats'];
     var topProducts = data?['top_products'] as List?;
-    var lowStockList = data?['low_stock_list'] as List?;
+    var lowStockList = data?['low_stock_list'] as List?; // Data stok kritis
 
     return Scaffold(
       backgroundColor: bgMain,
@@ -82,26 +88,52 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 20),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: cardDark,
-              borderRadius: BorderRadius.circular(8),
+          // Fitur Filter Pojok Kanan Atas Diaktifkan
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                selectedFilter = value;
+                _fetchData(); // Refresh data sesuai pilihan
+              });
+            },
+            offset: const Offset(0, 50),
+            color: cardDark,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today, size: 14, color: accentBlue),
-                const SizedBox(width: 6),
-                Text(
-                  "Bulan Ini",
-                  style: TextStyle(
-                    color: accentBlue,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: "Bulan Ini",
+                child: Text("Bulan Ini", style: TextStyle(color: Colors.white)),
+              ),
+              const PopupMenuItem(
+                value: "Tahun Ini",
+                child: Text("Tahun Ini", style: TextStyle(color: Colors.white)),
+              ),
+            ],
+            child: Container(
+              margin: const EdgeInsets.only(right: 20, top: 10, bottom: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: accentBlue.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: accentBlue.withOpacity(0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today, size: 14, color: accentBlue),
+                  const SizedBox(width: 6),
+                  Text(
+                    selectedFilter,
+                    style: TextStyle(
+                      color: accentBlue,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
+                  Icon(Icons.arrow_drop_down, color: accentBlue),
+                ],
+              ),
             ),
           ),
         ],
@@ -113,7 +145,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 1. GRID STATISTIK (4 KARTU)
+                  // 1. GRID STATISTIK
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -153,7 +185,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
                   const SizedBox(height: 25),
 
-                  // 2. CHART DISTRIBUSI KATEGORI
+                  // 2. CHART DISTRIBUSI KATEGORI (DI-UPDATE BIAR RAPI)
                   const Text(
                     "Distribusi Kategori",
                     style: TextStyle(
@@ -171,14 +203,13 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     ),
                     child: Row(
                       children: [
-                        // Pie Chart
                         SizedBox(
                           height: 120,
                           width: 120,
                           child: PieChart(
                             PieChartData(
-                              sectionsSpace: 0,
-                              centerSpaceRadius: 40,
+                              sectionsSpace: 5,
+                              centerSpaceRadius: 35,
                               sections: [
                                 PieChartSectionData(
                                   color: accentBlue,
@@ -218,10 +249,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                           ),
                         ),
                         const SizedBox(width: 20),
-                        // Legend
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildLegend(accentBlue, "Elektronik", "40%"),
                               const SizedBox(height: 10),
@@ -237,7 +266,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
 
                   const SizedBox(height: 25),
 
-                  // 3. PERLU PERHATIAN (Stok Menipis)
+                  // 3. PERLU PERHATIAN (DATA REAL DARI low_stock_list)
                   const Text(
                     "Perlu Perhatian",
                     style: TextStyle(
@@ -247,17 +276,26 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     ),
                   ),
                   const SizedBox(height: 15),
-                  if (lowStockList != null)
-                    ...lowStockList.map(
-                      (item) => _buildAttentionItem(
-                        item['name'],
-                        item['stock'].toString(),
+                  if (lowStockList == null || lowStockList.isEmpty)
+                    const Center(
+                      child: Text(
+                        "Semua stok aman!",
+                        style: TextStyle(color: Colors.grey),
                       ),
-                    ),
+                    )
+                  else
+                    ...lowStockList
+                        .map(
+                          (item) => _buildAttentionItem(
+                            item['name'],
+                            item['stock'].toString(),
+                          ),
+                        )
+                        .toList(),
 
                   const SizedBox(height: 25),
 
-                  // 4. PRODUK TERLARIS (Top 3)
+                  // 4. PRODUK TERLARIS
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -285,22 +323,20 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                     child: Column(
                       children: topProducts == null || topProducts.isEmpty
                           ? [
-                              Padding(
-                                padding: const EdgeInsets.all(20),
+                              const Padding(
+                                padding: EdgeInsets.all(20),
                                 child: Text(
                                   "Belum ada penjualan",
-                                  style: TextStyle(color: textGrey),
+                                  style: TextStyle(color: Colors.grey),
                                 ),
                               ),
                             ]
                           : topProducts.asMap().entries.map((entry) {
-                              int idx = entry.key + 1;
-                              var prod = entry.value;
                               return _buildTopProductItem(
-                                idx,
-                                prod['name'],
-                                prod['category'] ?? 'Umum',
-                                prod['sold'],
+                                entry.key + 1,
+                                entry.value['name'],
+                                entry.value['category'] ?? 'Umum',
+                                entry.value['sold'].toString(),
                               );
                             }).toList(),
                     ),
@@ -350,30 +386,18 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
           ),
-          if (isAlert)
-            Row(
-              children: [
-                Icon(Icons.error_outline, color: alertRed, size: 12),
-                const SizedBox(width: 4),
-                Text(
-                  "Perlu Restok",
-                  style: TextStyle(
-                    color: alertRed,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            )
-          else
-            Text(
-              "+12% naik",
-              style: TextStyle(color: successGreen, fontSize: 10),
+          Text(
+            isAlert ? "Perlu Restok" : "+12% naik",
+            style: TextStyle(
+              color: isAlert ? alertRed : successGreen,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
+          ),
         ],
       ),
     );
@@ -507,15 +531,6 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             ),
           ),
           const SizedBox(width: 15),
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.devices, color: Colors.white70, size: 16),
-          ),
-          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
